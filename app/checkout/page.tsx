@@ -507,19 +507,6 @@ export default function CheckoutPage() {
                     {pixData.point_of_interaction?.transaction_data?.qr_code || "Código PIX não disponível"}
                   </p>
                 </div>
-
-                {pixData.point_of_interaction?.transaction_data?.ticket_url && (
-                  <div className="mt-2">
-                    <a 
-                      href={pixData.point_of_interaction.transaction_data.ticket_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      Abrir comprovante PIX
-                    </a>
-                  </div>
-                )}
               </div>
 
               <Button onClick={copyPixCode} variant="outline" className="w-full bg-transparent">
