@@ -74,7 +74,7 @@ export default function BibleStudyDemo() {
               <Sparkles className="w-5 h-5 text-accent" />
             </div>
             <CardTitle className="text-3xl md:text-4xl font-bold text-balance leading-tight">
-              Pronta para facilitar sua preparação de célula feminina em 90% menos tempo?
+              Prepare sua célula feminina em apenas 10 minutos - sem stress, sem correria
             </CardTitle>
             <CardDescription className="text-lg md:text-xl text-pretty text-muted-foreground">
               Teste por 60 segundos nosso sistema com 90 estudos prontos e veja como vai revolucionar suas células
