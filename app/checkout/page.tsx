@@ -308,6 +308,36 @@ export default function CheckoutPage() {
               </div>
             )}
           </div>
+
+          {/* Seção 'O que você vai receber' antes de gerar o PIX */}
+          <div className="mt-6 w-full">
+            <h3 className="text-lg font-bold text-center mb-4">📦 O que você vai receber:</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>📚 90 Estudos Bíblicos Completos</strong>
+                  <p className="text-muted-foreground">Estudos detalhados para seu crescimento espiritual</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>📥 Acesso Imediato</strong>
+                  <p className="text-muted-foreground">Comece agora mesmo, sem espera</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>📱 Acesse de Qualquer Lugar</strong>
+                  <p className="text-muted-foreground">No celular, tablet ou computador</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -361,53 +391,6 @@ export default function CheckoutPage() {
                   <MessageCircle className="w-4 h-4 text-green-500" />
                   Precisa de ajuda? Fale pelo WhatsApp
                 </a>
-              </div>
-              
-              <div className="mt-6 space-y-6 max-w-2xl mx-auto">
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-100 shadow-sm">
-                  <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
-                    <MessageCircle className="w-5 h-5 mr-2 text-purple-600" />
-                    O que você vai receber
-                  </h3>
-                  <ul className="space-y-3">
-                    <li className="flex items-start">
-                      <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-800">Acesso ao site completo</p>
-                        <p className="text-sm text-gray-500">90 estudos bíblicos completos e organizados para estudo diário</p>
-                      </div>
-                    </li>
-                    <li className="flex items-start pt-3">
-                      <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-800">Versões em PDF</p>
-                        <p className="text-sm text-gray-500">Todos os 90 estudos disponíveis em PDF para baixar e imprimir</p>
-                      </div>
-                    </li>
-                    <li className="flex items-start pt-3">
-                      <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-800">Acesso vitalício</p>
-                        <p className="text-sm text-gray-500">Acesso ilimitado a todas as atualizações futuras</p>
-                      </div>
-                    </li>
-                    <li className="flex items-start pt-3">
-                      <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-800">Suporte exclusivo</p>
-                        <p className="text-sm text-gray-500">Atendimento personalizado para tirar suas dúvidas</p>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
               </div>
             </form>
           ) : paymentStatus === "approved" ? (

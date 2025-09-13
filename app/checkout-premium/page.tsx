@@ -195,18 +195,51 @@ export default function CheckoutPremiumPage() {
   }
 
   return (
-    <div className="min-h-screen gradient-feminine floral-pattern flex flex-col items-center justify-start p-4 pt-10">
-      <Card className="w-full max-w-4xl shadow-xl border-2 border-primary/20">
-        <CardHeader className="text-center space-y-4 relative">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-xl border-2 border-purple-100">
+        <CardHeader className="text-center space-y-4">
           <Button variant="ghost" onClick={() => router.push('/?skipDemo=true')} className="absolute top-4 left-4 p-2">
             <ArrowLeft className="w-4 h-4" />
           </Button>
 
           <div className="mx-auto mb-4 w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-            <CreditCard className="w-8 h-8 text-purple-600" />
+            <ShieldCheck className="w-8 h-8 text-purple-600" />
           </div>
+          
+          <CardTitle className="text-2xl font-bold text-purple-900">Checkout Premium</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Preencha com seu melhor e-mail para gerar o PIX
+          </p>
 
-          <CardTitle className="text-2xl font-bold text-balance">Kit Líder Transformada</CardTitle>
+          {/* Seção 'O que você vai receber' antes de gerar o PIX */}
+          <div className="mt-6 w-full">
+            <h3 className="text-lg font-bold text-center mb-4">📦 O que você vai levar:</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>📚 Kit Completo de Estudos Bíblicos</strong>
+                  <p className="text-muted-foreground">Estudos detalhados para aprofundar sua fé</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>🎯 Guia de Liderança Cristã</strong>
+                  <p className="text-muted-foreground">Técnicas para liderar com sabedoria</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>🎁 Bônus Exclusivos</strong>
+                  <p className="text-muted-foreground">Materiais adicionais para seu crescimento</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="text-center">
             <p className="text-3xl font-bold text-purple-600">R$ 24,90</p>
@@ -356,46 +389,17 @@ export default function CheckoutPremiumPage() {
                 Copiar Código PIX
               </Button>
 
-              <div className="mt-6 w-full">
-                <h3 className="text-lg font-bold text-center mb-4">📦 O que você vai levar:</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong>📚 Kit Completo de Estudos Bíblicos</strong>
-                      <p className="text-muted-foreground">Estudos detalhados para aprofundar sua fé</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong>🎯 Guia de Liderança Cristã</strong>
-                      <p className="text-muted-foreground">Técnicas para liderar com sabedoria</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <strong>🎁 Bônus Exclusivos</strong>
-                      <p className="text-muted-foreground">Materiais adicionais para seu crescimento</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-4 text-center text-sm text-muted-foreground">
-                  <p>O pagamento pode levar alguns minutos para ser confirmado.</p>
-                  <p>Você receberá um e-mail quando o pagamento for aprovado.</p>
-                </div>
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                <p>O pagamento pode levar alguns minutos para ser confirmado.</p>
+                <p>Você receberá um e-mail quando o pagamento for aprovado.</p>
               </div>
             </div>
           )}
           </div>
           
-          {/* What You'll Get Section - Below Buttons */}
+          {/* Seção de benefícios após o pagamento */}
           <div className="mt-12 space-y-4">
-            <h3 className="text-2xl font-bold text-center text-purple-700 mb-6">📦 O que você vai levar:</h3>
+            <h3 className="text-2xl font-bold text-center text-purple-700 mb-6">✨ Seu kit inclui:</h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100">
                 <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
