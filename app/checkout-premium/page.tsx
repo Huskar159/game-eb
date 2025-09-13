@@ -399,7 +399,7 @@ export default function CheckoutPremiumPage() {
           
           {/* Seção de benefícios após o pagamento */}
           <div className="mt-12 space-y-4">
-            <h3 className="text-2xl font-bold text-center text-purple-700 mb-6">✨ Seu kit inclui:</h3>
+            <h3 className="text-2xl font-bold text-center text-purple-700 mb-6">📦 O que você vai levar:</h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100">
                 <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
