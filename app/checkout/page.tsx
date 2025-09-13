@@ -267,52 +267,17 @@ export default function CheckoutPage() {
     }
   }
 
-  if (paymentStatus === "approved") {
-    return (
-      <div className="min-h-screen gradient-feminine flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-2 border-primary/20">
-          <CardHeader className="text-center space-y-4">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-gray-900">Pagamento Aprovado!</CardTitle>
-            <p className="text-gray-600">
-              Obrigado por sua compra! Seu pagamento foi aprovado e seu acesso ao Kit Básico foi liberado.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="rounded-lg bg-green-50 p-4 text-center">
-                <p className="text-sm font-medium text-green-800">Verifique seu e-mail</p>
-                <p className="mt-1 text-sm text-green-700">
-                  Enviamos um e-mail com os detalhes do seu pedido e instruções para acessar o conteúdo.
-                </p>
-              </div>
-              
-              <Button 
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 flex items-center justify-center gap-2"
-                onClick={() => {
-                  // Lógica para baixar o material
-                  alert("Iniciando download do material...")
-                }}
-              >
-                <Download className="w-5 h-5" />
-                Baixar Material Agora
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => router.push("/")}
-              >
-                Voltar para a Página Inicial
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  // Redireciona para a página de pagamento aprovado quando o status for aprovado
+  useEffect(() => {
+    if (paymentStatus === "approved") {
+      // Adiciona um pequeno atraso para garantir que o estado seja atualizado antes do redirecionamento
+      const timer = setTimeout(() => {
+        router.push("/pagamento-aprovado");
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [paymentStatus, router]);
 
   return (
     <div className="min-h-screen gradient-feminine floral-pattern flex items-center justify-center p-4">
