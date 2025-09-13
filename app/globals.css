@@ -1,0 +1,170 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color palette for Christian feminine theme with pastel colors */
+  --background: #ffffff;
+  --foreground: #374151;
+  --card: #f8f3f6;
+  --card-foreground: #374151;
+  --popover: #f0e2f1;
+  --popover-foreground: #374151;
+  --primary: #f0e2f1;
+  --primary-foreground: #374151;
+  --secondary: #d1c4e9;
+  --secondary-foreground: #374151;
+  --muted: #f8f3f6;
+  --muted-foreground: #6b7280;
+  --accent: #ffcccb;
+  --accent-foreground: #374151;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: #e5e7eb;
+  --input: #ffffff;
+  --ring: #d1c4e9;
+  --chart-1: #f0e2f1;
+  --chart-2: #d1c4e9;
+  --chart-3: #ffcccb;
+  --chart-4: #f8f3f6;
+  --chart-5: #e5e7eb;
+  --radius: 0.5rem;
+  --sidebar: #f8f3f6;
+  --sidebar-foreground: #374151;
+  --sidebar-primary: #f0e2f1;
+  --sidebar-primary-foreground: #374151;
+  --sidebar-accent: #ffcccb;
+  --sidebar-accent-foreground: #374151;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #d1c4e9;
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: #d1c4e9;
+  --primary-foreground: #0f172a;
+  --secondary: #f0e2f1;
+  --secondary-foreground: #f1f5f9;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #ffcccb;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #f1f5f9;
+  --border: #334155;
+  --input: #1e293b;
+  --ring: #d1c4e9;
+  --chart-1: #d1c4e9;
+  --chart-2: #f0e2f1;
+  --chart-3: #ffcccb;
+  --chart-4: #f8f3f6;
+  --chart-5: #e5e7eb;
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #d1c4e9;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #ffcccb;
+  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-border: #334155;
+  --sidebar-ring: #d1c4e9;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Updated custom styles for feminine Christian theme */
+.demo-overlay {
+  background: rgba(240, 226, 241, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+.pulse-animation {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.watermark {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(240, 226, 241, 0.95);
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(240, 226, 241, 0.3);
+}
+
+/* Added feminine decorative elements */
+.floral-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0e2f1' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3Ccircle cx='15' cy='15' r='1'/%3E%3Ccircle cx='45' cy='45' r='1'/%3E%3Ccircle cx='15' cy='45' r='1'/%3E%3Ccircle cx='45' cy='15' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.gradient-feminine {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f3f6 50%, #f0e2f1 100%);
+}
