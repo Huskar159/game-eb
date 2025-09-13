@@ -368,10 +368,10 @@ export default function CheckoutPremiumPage() {
           </div>
           
           {/* Seção de benefícios após o pagamento */}
-          <div className="mt-12 space-y-4">
+          <div className="mt-12 space-y-4 w-full">
             <h3 className="text-2xl font-bold text-center text-purple-700 mb-6">📦 O que você vai levar:</h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100">
+            <div className="space-y-4 w-full">
+              <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100 w-full">
                 <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">📚 Kit Completo de Estudos Bíblicos</h4>
@@ -379,7 +379,7 @@ export default function CheckoutPremiumPage() {
                 </div>
               </div>
               
-              <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100">
+              <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100 w-full">
                 <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">🎯 Guia de Liderança Cristã</h4>
@@ -387,7 +387,7 @@ export default function CheckoutPremiumPage() {
                 </div>
               </div>
               
-              <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100">
+              <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100 w-full">
                 <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">💎 Bônus Exclusivos</h4>
@@ -395,7 +395,7 @@ export default function CheckoutPremiumPage() {
                 </div>
               </div>
               
-              <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100">
+              <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100 w-full">
                 <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold">🛡️ Suporte VIP</h4>
