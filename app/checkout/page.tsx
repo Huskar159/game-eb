@@ -251,9 +251,19 @@ export default function CheckoutPage() {
   }
 
   const copyPixCode = () => {
-    if (pixData?.qr_code) {
-      navigator.clipboard.writeText(pixData.qr_code)
-      alert("Código PIX copiado!")
+    const pixCode = pixData?.point_of_interaction?.transaction_data?.qr_code;
+    if (pixCode) {
+      navigator.clipboard.writeText(pixCode)
+        .then(() => {
+          alert("Código PIX copiado para a área de transferência!");
+        })
+        .catch(err => {
+          console.error("Erro ao copiar o código PIX:", err);
+          alert("Não foi possível copiar o código. Por favor, copie manualmente.");
+        });
+    } else {
+      console.error("Código PIX não disponível para cópia");
+      alert("Código PIX não disponível. Por favor, tente novamente.");
     }
   }
 
@@ -474,25 +484,42 @@ export default function CheckoutPage() {
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg text-center space-y-3">
-                {pixData.qr_code_base64 && (
+                {pixData.point_of_interaction?.transaction_data?.qr_code_base64 ? (
                   <div className="bg-white p-3 rounded-lg border">
                     <p className="text-xs text-muted-foreground mb-2">QR Code PIX:</p>
                     <div className="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center">
                       <img
-                        src={`data:image/png;base64,${pixData.qr_code_base64}`}
+                        src={`data:image/png;base64,${pixData.point_of_interaction.transaction_data.qr_code_base64}`}
                         alt="QR Code PIX"
                         className="w-full h-full object-contain"
                       />
                     </div>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                    <p className="text-yellow-700">QR Code não disponível. Por favor, copie o código PIX abaixo.</p>
                   </div>
                 )}
 
                 <div>
                   <p className="text-xs text-muted-foreground mb-2">Código PIX:</p>
                   <p className="text-xs font-mono bg-white p-2 rounded border break-all">
-                    {pixData.qr_code || "Gerando código PIX..."}
+                    {pixData.point_of_interaction?.transaction_data?.qr_code || "Código PIX não disponível"}
                   </p>
                 </div>
+
+                {pixData.point_of_interaction?.transaction_data?.ticket_url && (
+                  <div className="mt-2">
+                    <a 
+                      href={pixData.point_of_interaction.transaction_data.ticket_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      Abrir comprovante PIX
+                    </a>
+                  </div>
+                )}
               </div>
 
               <Button onClick={copyPixCode} variant="outline" className="w-full bg-transparent">
