@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, Mail, CreditCard, CheckCircle, Loader2, Clock, Download, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useFacebookPixel } from "@/hooks/useFacebookPixel"
+import { trackInitiateCheckout } from "@/lib/facebook-pixel"
 
 export default function CheckoutPage() {
   const [email, setEmail] = useState("")
@@ -25,6 +26,40 @@ export default function CheckoutPage() {
   // Inicializa o hook do Facebook Pixel
   console.log('[Checkout] Inicializando hook useFacebookPixel');
   const { trackEvent, isReady } = useFacebookPixel();
+  
+  // Rastrear início do checkout
+  useEffect(() => {
+    console.log('[Checkout] Iniciando rastreamento do checkout');
+    
+    // Adiciona um pequeno atraso para garantir que o Facebook Pixel esteja carregado
+    const timer = setTimeout(() => {
+      console.log('[Checkout] Chamando trackInitiateCheckout...');
+      
+      trackInitiateCheckout(
+        15.00, // Valor do produto
+        'BRL', // Moeda
+        'kit_essencial', // ID do produto
+        'Kit Essencial', // Nome do produto
+        {
+          // Parâmetros adicionais para melhor rastreamento
+          source: 'checkout_page',
+          page_type: 'checkout',
+          user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server'
+        }
+      );
+      
+      // Verifica se o fbq foi carregado corretamente
+      if (typeof window !== 'undefined') {
+        console.log('[Checkout] Verificando fbq:', {
+          fbq: typeof window.fbq,
+          fbqLoaded: window.fbq?.loaded,
+          fbqQueue: window.fbq?.queue
+        });
+      }
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   // Log quando o hook estiver pronto
   useEffect(() => {
