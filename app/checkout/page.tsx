@@ -478,6 +478,16 @@ export default function CheckoutPage() {
                 Copiar Código PIX
               </Button>
 
+              <a 
+                href="https://wa.me/556181662814?text=Olá,%20preciso%20de%20ajuda%20com%20o%20pagamento%20PIX%20do%20Kit%20Básico" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-200 hover:border-gray-300 rounded-md py-2 px-4 bg-white shadow-sm"
+              >
+                <MessageCircle className="w-4 h-4 text-green-500" />
+                Precisa de ajuda? Fale pelo WhatsApp
+              </a>
+
               <div className="text-center text-xs text-muted-foreground">
                 <p className="font-semibold text-green-600">✨ Detecção automática ativada!</p>
                 <p>Assim que você pagar, o acesso será liberado automaticamente</p>
