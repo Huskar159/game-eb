@@ -41,7 +41,15 @@ export default function FacebookPixelPurchase({
           'https://connect.facebook.net/en_US/fbevents.js');
           
           fbq('init', '${PIXEL_ID}');
-          fbq('track', 'PageView');
+          fbq('track', 'Purchase', {
+            value: 0,
+            currency: 'BRL',
+            content_ids: ['page_load'],
+            content_name: 'Page Load',
+            content_type: 'product',
+            content_category: 'Estudos Bíblicos',
+            num_items: 1
+          });
         `;
         document.head.appendChild(script);
       }
