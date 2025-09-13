@@ -211,36 +211,6 @@ export default function CheckoutPremiumPage() {
             Preencha com seu melhor e-mail para gerar o PIX
           </p>
 
-          {/* Seção 'O que você vai receber' antes de gerar o PIX */}
-          <div className="mt-6 w-full">
-            <h3 className="text-lg font-bold text-center mb-4">📦 O que você vai levar:</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>📚 Kit Completo de Estudos Bíblicos</strong>
-                  <p className="text-muted-foreground">Estudos detalhados para aprofundar sua fé</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>🎯 Guia de Liderança Cristã</strong>
-                  <p className="text-muted-foreground">Técnicas para liderar com sabedoria</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>🎁 Bônus Exclusivos</strong>
-                  <p className="text-muted-foreground">Materiais adicionais para seu crescimento</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="text-center">
             <p className="text-3xl font-bold text-purple-600">R$ 24,90</p>
             <p className="text-sm text-muted-foreground">Pagamento via PIX</p>
