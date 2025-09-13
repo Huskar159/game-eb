@@ -20,65 +20,6 @@ export default function FacebookPixelPurchase({
   useEffect(() => {
     console.log('Iniciando FacebookPixelPurchase com:', { price, contentId, contentName, currency });
     
-    // Cria o script do Pixel se não existir
-    if (!document.getElementById('facebook-pixel-script')) {
-      console.log('Criando script do Facebook Pixel');
-      const script = document.createElement('script');
-      script.id = 'facebook-pixel-script';
-      script.innerHTML = `
-        console.log('Inicializando Facebook Pixel...');
-        !function(f,b,e,v,n,t,s)
-        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s);
-        
-        // Adiciona um listener para quando o script carregar
-        t.onload = function() {
-          console.log('Facebook Pixel carregado com sucesso!');
-          try {
-            fbq('init', '${PIXEL_ID}');
-            fbq('track', 'PageView');
-            console.log('PageView disparado com sucesso');
-            
-            // Tenta disparar o evento de compra imediatamente
-            if (window.fbq) {
-              console.log('Tentando disparar evento Purchase...');
-              fbq('track', 'Purchase', {
-                value: ${price},
-                currency: '${currency}',
-                content_ids: ['${contentId}'],
-                content_name: '${contentName.replace(/'/g, "\\'")}',
-                content_type: 'product',
-                content_category: 'Estudos Bíblicos',
-                num_items: 1,
-                order_id: 'order_' + Date.now() + '_${contentId}',
-                product_catalog_id: 'estudos_biblicos',
-                product_price: ${price},
-                product_quantity: 1
-              });
-              console.log('Evento Purchase disparado com sucesso no carregamento do script');
-            }
-          } catch (error) {
-            console.error('Erro ao inicializar o Pixel:', error);
-          }
-        };
-        
-        // Em caso de erro no carregamento
-        t.onerror = function(error) {
-          console.error('Erro ao carregar o Facebook Pixel:', error);
-        };
-        
-        }(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
-      `;
-      document.head.appendChild(script);
-    } else {
-      console.log('Script do Facebook Pixel já existe');
-    }
-
     // Função para disparar o evento de compra
     const trackPurchase = () => {
       console.log('Tentando disparar evento Purchase...');
@@ -92,48 +33,54 @@ export default function FacebookPixelPurchase({
         });
         
         try {
+          // Gera um ID único para o pedido
+          const orderId = 'order_' + Date.now() + '_' + Math.floor(Math.random() * 1000) + '_' + contentId;
+          
           window.fbq('track', 'Purchase', {
             value: price,
             currency: currency,
             content_ids: [contentId],
             content_name: contentName,
-            content_type: 'product',
+            content_type: 'product_group',
             content_category: 'Estudos Bíblicos',
             num_items: 1,
-            order_id: 'order_' + Date.now() + '_' + contentId,
+            order_id: orderId,
             product_catalog_id: 'estudos_biblicos',
             product_price: price,
-            product_quantity: 1
+            product_quantity: 1,
+            source: 'checkout_premium',
+            page_type: 'thank_you_page'
           });
-          console.log('Evento Purchase disparado com sucesso!');
+          
+          console.log('Evento Purchase disparado com sucesso!', { orderId });
           return true;
         } catch (error) {
           console.error('Erro ao disparar evento Purchase:', error);
           return false;
         }
       } else {
-        console.log('fbq ainda não está disponível');
+        console.warn('fbq ainda não está disponível, tentando novamente em 1 segundo...');
+        // Tenta novamente após 1 segundo se o fbq ainda não estiver disponível
+        setTimeout(trackPurchase, 1000);
         return false;
       }
     };
 
-    // Tenta disparar o evento imediatamente
-    if (!trackPurchase()) {
-      console.log('Primeira tentativa falhou, agendando nova tentativa em 1 segundo...');
-      // Se falhar, tenta novamente após 1 segundo
-      const timer1 = setTimeout(() => {
-        console.log('Segunda tentativa de disparar evento Purchase...');
-        if (!trackPurchase()) {
-          // Se ainda falhar, tenta mais uma vez após 2 segundos
-          const timer2 = setTimeout(() => {
-            console.log('Terceira tentativa de disparar evento Purchase...');
-            trackPurchase();
-          }, 2000);
-          return () => clearTimeout(timer2);
+    // Verifica se o Pixel já está carregado
+    if (window.fbq && window.fbq.loaded) {
+      console.log('Facebook Pixel já está carregado, disparando evento...');
+      trackPurchase();
+    } else {
+      // Se o Pixel ainda não estiver carregado, tenta novamente após um atraso
+      console.log('Aguardando o Facebook Pixel carregar...');
+      const checkPixelLoaded = setInterval(() => {
+        if (window.fbq && window.fbq.loaded) {
+          clearInterval(checkPixelLoaded);
+          trackPurchase();
         }
-      }, 1000);
-      
-      return () => clearTimeout(timer1);
+      }, 500);
+      // Limpa o intervalo se o componente for desmontado
+      return () => clearInterval(checkPixelLoaded);
     }
   }, [price, contentId, contentName, currency]);
 
