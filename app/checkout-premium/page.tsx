@@ -363,6 +363,16 @@ export default function CheckoutPremiumPage() {
                 <p>O pagamento pode levar alguns minutos para ser confirmado.</p>
                 <p>Você receberá um e-mail quando o pagamento for aprovado.</p>
               </div>
+              
+              <a 
+                href="https://wa.me/556181662814?text=Olá,%20preciso%20de%20ajuda%20com%20o%20pagamento%20do%20Kit%20Premium" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-200 hover:border-gray-300 rounded-md py-2 px-4 bg-white shadow-sm mt-4"
+              >
+                <MessageCircle className="w-4 h-4 text-green-500" />
+                Precisa de ajuda? Fale pelo WhatsApp
+              </a>
             </div>
           )}
           </div>
