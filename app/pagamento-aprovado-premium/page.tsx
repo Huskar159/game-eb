@@ -13,17 +13,6 @@ export default function PagamentoAprovadoPremium() {
 
   return (
     <div className="min-h-screen gradient-feminine">
-      {/* Meta Pixel Code */}
-      <noscript>
-        <img
-          height="1"
-          width="1"
-          style={{ display: 'none' }}
-          src={`https://www.facebook.com/tr?id=2292146237905291&ev=PageView&noscript=1`}
-        />
-      </noscript>
-      {/* End Meta Pixel Code */}
-      
       <FacebookPixelPurchase 
         price={24.90}
         contentId="kit_lider_transformada"
