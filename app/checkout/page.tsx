@@ -309,35 +309,6 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* Seção 'O que você vai receber' antes de gerar o PIX */}
-          <div className="mt-6 w-full">
-            <h3 className="text-lg font-bold text-center mb-4">📦 O que você vai receber:</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>📚 90 Estudos Bíblicos Completos</strong>
-                  <p className="text-muted-foreground">Estudos detalhados para seu crescimento espiritual</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>📥 Acesso Imediato</strong>
-                  <p className="text-muted-foreground">Comece agora mesmo, sem espera</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <strong>📱 Acesse de Qualquer Lugar</strong>
-                  <p className="text-muted-foreground">No celular, tablet ou computador</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -391,6 +362,36 @@ export default function CheckoutPage() {
                   <MessageCircle className="w-4 h-4 text-green-500" />
                   Precisa de ajuda? Fale pelo WhatsApp
                 </a>
+
+                {/* Seção 'O que você vai receber' abaixo dos botões */}
+                <div className="mt-6 w-full">
+                  <h3 className="text-lg font-bold text-center mb-4">📦 O que você vai receber:</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <strong>📚 90 Estudos Bíblicos Completos</strong>
+                        <p className="text-muted-foreground">Estudos detalhados para seu crescimento espiritual</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <strong>📥 Acesso Imediato</strong>
+                        <p className="text-muted-foreground">Comece agora mesmo, sem espera</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <strong>📱 Acesse de Qualquer Lugar</strong>
+                        <p className="text-muted-foreground">No celular, tablet ou computador</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </form>
           ) : paymentStatus === "approved" ? (
