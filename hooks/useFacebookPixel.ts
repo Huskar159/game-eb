@@ -25,52 +25,86 @@ export function useFacebookPixel() {
     // Cria a função fbq se não existir
     if (!window.fbq) {
       console.log('[useFacebookPixel] Criando função fbq...');
-      window.fbq = function() {
-        console.log('[useFacebookPixel] fbq chamado com:', arguments);
-        (window.fbq.q = window.fbq.q || []).push(arguments);
+      const fbq = function() {
+        if (!fbq.loaded) {
+          console.log('[useFacebookPixel] fbq chamado antes do carregamento:', arguments);
+          (fbq.q = fbq.q || []).push(arguments);
+        } else {
+          console.log('[useFacebookPixel] fbq chamado após carregamento:', arguments);
+          try {
+            // Tenta chamar o FB Pixel real se estiver disponível
+            if (window.fbq && typeof window.fbq === 'function') {
+              window.fbq.apply(this, arguments);
+            }
+          } catch (e) {
+            console.error('[useFacebookPixel] Erro ao chamar fbq:', e);
+          }
+        }
       };
-      window.fbq.push = window.fbq;
-      window.fbq.loaded = false; // Inicialmente não está carregado
-      window.fbq.version = '2.0';
-      window.fbq.queue = [];
-      window._fbq = window.fbq;
-      console.log('[useFacebookPixel] Função fbq criada:', window.fbq);
+      
+      // Atribui as propriedades estáticas
+      fbq.loaded = false;
+      fbq.version = '2.0';
+      fbq.queue = [];
+      
+      // Atribui ao escopo global
+      window.fbq = fbq;
+      window._fbq = fbq;
+      
+      console.log('[useFacebookPixel] Função fbq criada');
     } else {
-      console.log('[useFacebookPixel] Função fbq já existe:', window.fbq);
+      console.log('[useFacebookPixel] Função fbq já existe');
     }
 
-    // Verifica se o fbq está pronto
-    let attempts = 0;
-    const maxAttempts = 10;
-    
-    const checkFbq = setInterval(() => {
-      attempts++;
-      console.log(`[useFacebookPixel] Verificando fbq (tentativa ${attempts}/${maxAttempts})...`);
-      
-      if (window.fbq && window.fbq.loaded) {
-        console.log('[useFacebookPixel] fbq está pronto!');
-        setIsReady(true);
-        clearInterval(checkFbq);
-      } else if (attempts >= maxAttempts) {
-        console.warn('[useFacebookPixel] Número máximo de tentativas atingido, fbq não está pronto');
-        clearInterval(checkFbq);
-      } else {
-        console.log('[useFacebookPixel] fbq ainda não está pronto, estado atual:', {
-          fbqExists: !!window.fbq,
-          fbqLoaded: window.fbq?.loaded,
-          queueLength: window.fbq?.queue?.length || 0
-        });
+    // Carrega o script do Facebook Pixel
+    const loadFacebookPixel = () => {
+      // Verifica se o script já foi carregado
+      if (document.getElementById('facebook-pixel-script')) {
+        console.log('[useFacebookPixel] Script do Facebook Pixel já carregado');
+        return;
       }
-    }, 1000);
 
+      // Cria o script do Facebook Pixel
+      const script = document.createElement('script');
+      script.id = 'facebook-pixel-script';
+      script.async = true;
+      script.defer = true;
+      script.src = `https://connect.facebook.net/en_US/fbevents.js`;
+      
+      script.onload = () => {
+        console.log('[useFacebookPixel] Script do Facebook Pixel carregado com sucesso');
+        
+        // Inicializa o pixel
+        try {
+          window.fbq('init', '${FB_PIXEL_ID}');
+          window.fbq('track', 'PageView');
+          window.fbq.loaded = true;
+          setIsReady(true);
+          console.log('[useFacebookPixel] Facebook Pixel inicializado com sucesso');
+        } catch (e) {
+          console.error('[useFacebookPixel] Erro ao inicializar o Facebook Pixel:', e);
+        }
+      };
+      
+      script.onerror = (error) => {
+        console.error('[useFacebookPixel] Erro ao carregar o script do Facebook Pixel:', error);
+      };
+      
+      // Adiciona o script ao documento
+      document.head.appendChild(script);
+    };
+    
+    // Inicia o carregamento do pixel
+    loadFacebookPixel();
+    
     return () => {
-      console.log('[useFacebookPixel] Limpando verificação de fbq');
-      clearInterval(checkFbq);
+      console.log('[useFacebookPixel] Limpando recursos');
+      // Limpeza se necessário
     };
   }, []);
 
   // Função para rastrear eventos
-  const trackEvent = async (eventName: string, eventData: Record<string, any> = {}) => {
+  const trackEvent = (eventName: string, eventData: Record<string, any> = {}) => {
     console.log(`[Facebook Pixel] Iniciando rastreamento do evento: ${eventName}`, eventData);
     
     if (typeof window === 'undefined') {
@@ -78,25 +112,31 @@ export function useFacebookPixel() {
       return false;
     }
     
-    // Se o fbq não estiver disponível, tenta inicializá-lo
+    // Se o fbq não estiver disponível, apenas registra o evento para ser processado depois
     if (!window.fbq) {
-      console.warn('[Facebook Pixel] fbq não está disponível no objeto window, tentando inicializar...');
-      
-      // Tenta inicializar o fbq
-      window.fbq = function() {
-        console.log('[Facebook Pixel] fbq chamado durante inicialização:', arguments);
+      console.warn('[Facebook Pixel] fbq não está disponível, enfileirando evento:', eventName);
+      (window.fbq = window.fbq || function() {
         (window.fbq.q = window.fbq.q || []).push(arguments);
-      };
-      window.fbq.push = window.fbq;
-      window.fbq.loaded = false;
-      window.fbq.version = '2.0';
-      window.fbq.queue = [];
-      window._fbq = window.fbq;
+      }).loaded = false;
       
-      console.log('[Facebook Pixel] fbq inicializado manualmente:', window.fbq);
+      // Se não houver fila, cria uma
+      if (!window.fbq.q) {
+        window.fbq.q = [];
+      }
+      
+      // Adiciona o evento à fila
+      window.fbq('track', eventName, eventData);
+      return false;
     }
     
-    // Verifica se o fbq está pronto
+    // Se o fbq não estiver carregado, enfileira o evento
+    if (!window.fbq.loaded) {
+      console.warn('[Facebook Pixel] fbq ainda não foi carregado, enfileirando evento:', eventName);
+      window.fbq('track', eventName, eventData);
+      return false;
+    }
+    
+    // Se chegou aqui, o fbq está pronto para uso
     if (!window.fbq.loaded) {
       console.warn('[Facebook Pixel] fbq ainda não está carregado, adicionando à fila');
       
