@@ -157,13 +157,13 @@ export default function CheckoutPage() {
     let interval: NodeJS.Timeout
 
     const checkPaymentStatus = async () => {
-      if (!pixData?.id || paymentStatus !== "pending") return
+      if (!pixData?.id) return
       
       try {
+        console.log("[v0] Verificando status do pagamento:", pixData.id, "Status atual:", paymentStatus)
         setCheckingPayment(true)
-        console.log("[v0] Verificando status do pagamento:", pixData.id)
 
-        const response = await fetch(`/api/check-payment/${pixData.id}`)
+        const response = await fetch(`/api/check-payment/${pixData.id}?t=${Date.now()}`) // Adiciona timestamp para evitar cache
         
         if (!response.ok) {
           console.error("[v0] Erro na resposta da API:", response.status)
@@ -177,14 +177,17 @@ export default function CheckoutPage() {
           console.log("[v0] Pagamento aprovado!")
           setPaymentStatus("approved")
           clearInterval(interval)
-          // Não redireciona mais, apenas atualiza o estado para mostrar a confirmação
         } else if (data.status === "rejected") {
           console.log("[v0] Pagamento rejeitado")
           setError("Pagamento rejeitado. Por favor, tente novamente.")
           setPaymentStatus("pending")
           clearInterval(interval)
+        } else if (data.status === "pending") {
+          console.log(`[v0] Pagamento pendente: ${data.status_detail}`)
+          // Mantém o status como pending e continua verificando
+        } else {
+          console.log(`[v0] Status inesperado recebido: ${data.status}`)
         }
-        // Se estiver pendente, continua verificando
         
       } catch (error) {
         console.error("[v0] Erro ao verificar pagamento:", error)
@@ -198,6 +201,11 @@ export default function CheckoutPage() {
       // Verifica imediatamente e depois a cada 5 segundos
       checkPaymentStatus()
       interval = setInterval(checkPaymentStatus, 5000)
+      
+      // Limpa o intervalo quando o componente for desmontado
+      return () => {
+        if (interval) clearInterval(interval)
+      }
     }
 
     return () => {
