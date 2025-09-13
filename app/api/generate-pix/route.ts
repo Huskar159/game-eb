@@ -149,9 +149,28 @@ export async function POST(request: NextRequest) {
     const idempotencyKey = `kit-essencial-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
     log(`Idempotency Key gerada: ${idempotencyKey}`);
 
-    // URL de notificação temporária para testes
-    const notificationUrl = `${process.env.NEXTAUTH_URL || 'https://seu-site.com'}/api/webhook/mercadopago`;
-    log(`URL de notificação: ${notificationUrl}`);
+    // URL base padrão para desenvolvimento local
+    let baseUrl = 'http://localhost:3000';
+    
+    // Se estiver em produção (Vercel), usar a URL do ambiente
+    const vercelUrl = process.env.VERCEL_URL;
+    const nextAuthUrl = process.env.NEXTAUTH_URL;
+    
+    if (process.env.NODE_ENV === 'production' && vercelUrl) {
+      baseUrl = `https://${vercelUrl}`;
+    } else if (nextAuthUrl) {
+      baseUrl = nextAuthUrl;
+    }
+    
+    // Garantir que a URL não termine com barra
+    baseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    
+    // Log para depuração
+    log('Configuração de ambiente:', {
+      nodeEnv: process.env.NODE_ENV,
+      vercelUrl: vercelUrl ? 'definido' : 'não definido',
+      nextAuthUrl: nextAuthUrl ? 'definido' : 'não definido'
+    });
 
     try {
       // Prepara o corpo da requisição para o Mercado Pago
@@ -164,7 +183,8 @@ export async function POST(request: NextRequest) {
           first_name: "Cliente",
           last_name: "Kit Essencial",
         },
-        notification_url: notificationUrl,
+        // Removido temporariamente para testes
+        // notification_url: notificationUrl,
         external_reference: `kit-essencial-${Date.now()}`,
         metadata: {
           kit_type: "essencial",
