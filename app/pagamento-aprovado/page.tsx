@@ -13,10 +13,22 @@ export default function PagamentoAprovado() {
 
   return (
     <div className="min-h-screen gradient-feminine">
+      {/* Meta Pixel Code */}
+      <noscript>
+        <img
+          height="1"
+          width="1"
+          style={{ display: 'none' }}
+          src={`https://www.facebook.com/tr?id=2292146237905291&ev=PageView&noscript=1`}
+        />
+      </noscript>
+      {/* End Meta Pixel Code */}
+      
       <FacebookPixelPurchase 
         price={15.00} 
         contentId="kit_essencial" 
         contentName="Kit Essencial"
+        currency="BRL"
       />
       <div className="flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 text-center">
