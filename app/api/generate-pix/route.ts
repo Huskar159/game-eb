@@ -31,17 +31,30 @@ export async function POST(request: NextRequest) {
 
     const { email } = await request.json()
 
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      console.error("[v0] E-mail inválido:", email);
+      return createResponse({ 
+        error: "Por favor, insira um endereço de e-mail válido." 
+      }, 400);
+    }
+
     console.log("[v0] Gerando PIX via Mercado Pago para:", email)
     
-    // Log de depuração para verificar as variáveis de ambiente
-    console.log('[v0] Variáveis de ambiente disponíveis:', Object.keys(process.env).filter(key => key.includes('MERCADOPAGO') || key.includes('NEXTAUTH')))
-    console.log('[v0] MERCADOPAGO_ACCESS_TOKEN:', process.env.MERCADOPAGO_ACCESS_TOKEN ? '***TOKEN PRESENTE***' : 'TOKEN NÃO ENCONTRADO')
-
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
+    
+    // Logs de depuração (apenas em desenvolvimento)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[v0] Modo de desenvolvimento ativado');
+      console.log('[v0] Variáveis de ambiente disponíveis:', Object.keys(process.env).filter(key => key.includes('MERCADOPAGO')));
+    }
 
     if (!accessToken) {
-      console.error("[v0] ERRO: Token de acesso do Mercado Pago não configurado")
-      return createResponse({ error: "Erro de configuração do sistema" }, 500);
+      const errorMsg = "Erro de configuração: Token de acesso do Mercado Pago não encontrado.";
+      console.error("[v0] ERRO:", errorMsg);
+      return createResponse({ 
+        error: "Erro ao processar o pagamento. Por favor, tente novamente mais tarde ou entre em contato com o suporte.",
+        code: "CONFIG_ERROR"
+      }, 500);
     }
 
     console.log("[v0] Access Token encontrado, length:", accessToken.length)
@@ -77,25 +90,56 @@ export async function POST(request: NextRequest) {
     
     try {
       console.log("[v0] Enviando requisição para a API do Mercado Pago...");
-      response = await fetch("https://api.mercadopago.com/v1/payments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
-          "X-Idempotency-Key": idempotencyKey,
-        },
-        body: JSON.stringify(requestBody),
-      });
-      
-      console.log("[v0] Status da resposta do Mercado Pago:", response.status);
-      data = await response.json();
-      console.log("[v0] Resposta do Mercado Pago:", JSON.stringify(data, null, 2));
-      
-      if (!response.ok) {
-        const errorMessage = data.message || "Erro ao processar pagamento";
-        console.log("[v0] Erro na resposta do Mercado Pago:", errorMessage);
-        return createResponse({ error: errorMessage }, response.status);
-      }
+      try {
+        response = await fetch("https://api.mercadopago.com/v1/payments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+            "X-Idempotency-Key": idempotencyKey,
+          },
+          body: JSON.stringify(requestBody),
+        });
+        
+        console.log("[v0] Status da resposta do Mercado Pago:", response.status);
+        data = await response.json();
+        
+        if (!response.ok) {
+          // Log detalhado apenas em desenvolvimento
+          if (process.env.NODE_ENV === 'development') {
+            console.log("[v0] Resposta de erro do Mercado Pago:", JSON.stringify(data, null, 2));
+          }
+          
+          // Mapeia códigos de erro comuns para mensagens amigáveis
+          let errorMessage = "Não foi possível processar seu pagamento no momento.";
+          
+          if (response.status === 400) {
+            errorMessage = "Dados de pagamento inválidos. Por favor, verifique as informações e tente novamente.";
+          } else if (response.status === 401) {
+            errorMessage = "Erro de autenticação. Por favor, tente novamente mais tarde.";
+          } else if (response.status === 429) {
+            errorMessage = "Muitas tentativas em pouco tempo. Por favor, aguarde alguns instantes e tente novamente.";
+          } else if (response.status >= 500) {
+            errorMessage = "Serviço temporariamente indisponível. Por favor, tente novamente em alguns minutos.";
+          }
+          
+          console.log(`[v0] Erro na resposta do Mercado Pago (${response.status}):`, data.message || 'Sem mensagem de erro');
+          return createResponse({ 
+            error: errorMessage,
+            code: `MP_${response.status}`,
+            details: process.env.NODE_ENV === 'development' ? data : undefined
+          }, 200); // Mantém 200 para evitar erros no frontend
+        }
+        
+        console.log("[v0] PIX gerado com sucesso!");
+        
+      } catch (error) {
+        console.error("[v0] Erro na requisição para o Mercado Pago:", error);
+        return createResponse({
+          error: "Não foi possível conectar ao serviço de pagamentos. Verifique sua conexão e tente novamente.",
+          code: "CONNECTION_ERROR"
+        }, 200);
+      }  
     } catch (error) {
       console.error("[v0] Erro ao fazer requisição para o Mercado Pago:", error);
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
