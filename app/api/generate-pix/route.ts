@@ -28,8 +28,14 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   try {
     console.log("[v0] === INÍCIO DA API ROUTE MERCADO PAGO ===")
+    console.log("[v0] Ambiente:", process.env.NODE_ENV)
+    console.log("[v0] URL da requisição:", request.url)
+    console.log("[v0] Cabeçalhos:", Object.fromEntries(request.headers.entries()))
 
-    const { email } = await request.json()
+    const body = await request.json()
+    console.log("[v0] Corpo da requisição:", body)
+    
+    const { email } = body
 
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
       console.error("[v0] E-mail inválido:", email);
@@ -48,12 +54,32 @@ export async function POST(request: NextRequest) {
       console.log('[v0] Variáveis de ambiente disponíveis:', Object.keys(process.env).filter(key => key.includes('MERCADOPAGO')));
     }
 
-    if (!accessToken) {
-      const errorMsg = "Erro de configuração: Token de acesso do Mercado Pago não encontrado.";
+    // Verifica se o token está presente e tem o formato esperado
+    const isTokenValid = accessToken && accessToken.startsWith('APP_USR-') && accessToken.length > 30;
+    
+    console.log("[v0] === VERIFICAÇÃO DE TOKEN ===");
+    console.log("[v0] Token presente:", accessToken ? 'SIM' : 'NÃO');
+    console.log("[v0] Formato do token:", isTokenValid ? 'VÁLIDO' : 'INVÁLIDO');
+    console.log("[v0] Variáveis de ambiente disponíveis:", Object.keys(process.env).filter(k => k.includes('MERCADO') || k.includes('NEXT') || k.includes('VERCEL')));
+
+    if (!accessToken || !isTokenValid) {
+      const errorMsg = !accessToken 
+        ? "Token de acesso do Mercado Pago não encontrado."
+        : "Token de acesso do Mercado Pago está em um formato inválido.";
+      
       console.error("[v0] ERRO:", errorMsg);
+      console.error("[v0] Verifique se a variável MERCADOPAGO_ACCESS_TOKEN está definida corretamente na Vercel");
+      
       return createResponse({ 
-        error: "Erro ao processar o pagamento. Por favor, tente novamente mais tarde ou entre em contato com o suporte.",
-        code: "CONFIG_ERROR"
+        error: "Erro de configuração do sistema. Por favor, entre em contato com o suporte.",
+        code: "CONFIG_ERROR",
+        details: {
+          message: errorMsg,
+          hasToken: !!accessToken,
+          tokenStartsWithAppUsr: accessToken?.startsWith('APP_USR-'),
+          tokenLength: accessToken?.length,
+          requiredMinLength: 30
+        }
       }, 500);
     }
 
