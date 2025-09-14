@@ -4,6 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Loader2, Clock, MessageCircle } from 'lucide-react';
 
+declare global {
+  interface Window {
+    fbq: any;
+  }
+}
+
 export default function PosTestePage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +18,23 @@ export default function PosTestePage() {
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'approved' | 'checking' | string>('pending');
   const [checkingPayment, setCheckingPayment] = useState(false);
   const router = useRouter();
+
+  // Facebook Pixel - Initiate Checkout
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'InitiateCheckout', {
+        content_category: 'Religioso',
+        content_ids: ['kit_basico'],
+        content_name: 'Kit Básico de Estudos Bíblicos',
+        currency: 'BRL',
+        value: 15.00,
+        content_type: 'product',
+      });
+      console.log('[Facebook Pixel] InitiateCheckout event fired');
+    } else {
+      console.log('[Facebook Pixel] fbq not available yet');
+    }
+  }, []);
 
   const copyPixCode = () => {
     const pixCode = pixData?.point_of_interaction?.transaction_data?.qr_code;
