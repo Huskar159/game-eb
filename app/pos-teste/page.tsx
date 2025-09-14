@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Loader2, Clock, MessageCircle, Copy } from 'lucide-react';
+import { CheckCircle, Loader2, Clock, MessageCircle } from 'lucide-react';
 
 declare global {
   interface Window {
     fbq: any;
-    _fbq?: any;
   }
 }
 
@@ -19,299 +18,395 @@ export default function PosTestePage() {
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'approved' | 'checking' | string>('pending');
   const [checkingPayment, setCheckingPayment] = useState(false);
   const router = useRouter();
-  const paymentCheckInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Facebook Pixel - Initiate Checkout
   useEffect(() => {
     const FB_PIXEL_ID = '2292146237905291';
     
-    const fireInitiateCheckout = () => {
-      if (typeof window === 'undefined' || !window.fbq) {
-        console.log('[Facebook Pixel] fbq not available yet, will retry...');
-        setTimeout(fireInitiateCheckout, 500);
-        return;
-      }
+    if (typeof window !== 'undefined' && window.fbq) {
+      // Standard pixel tracking
+      window.fbq('track', 'PageView');
       
-      console.log('[Facebook Pixel] Disparando InitiateCheckout...');
+      // Initiate Checkout Event
+      window.fbq('track', 'InitiateCheckout', {
+        content_category: 'Religioso',
+        content_ids: ['kit_basico'],
+        content_name: 'Kit Básico de Estudos Bíblicos',
+        currency: 'BRL',
+        value: 15.00,
+        content_type: 'product',
+      }, {eventID: 'pos-teste-initiate-checkout-' + Date.now()});
       
-      try {
-        const eventData = {
+      console.log('[Facebook Pixel] InitiateCheckout event fired with Pixel ID:', FB_PIXEL_ID);
+    } else {
+      console.log('[Facebook Pixel] fbq not available yet');
+      // Fallback in case fbq isn't loaded yet
+      if (typeof window !== 'undefined') {
+        window._fbq = window._fbq || [];
+        window._fbq.push(['track', 'InitiateCheckout', {
           content_category: 'Religioso',
           content_ids: ['kit_basico'],
           content_name: 'Kit Básico de Estudos Bíblicos',
           currency: 'BRL',
           value: 15.00,
-          content_type: 'product',
-          eventID: 'pos-teste-initiate-checkout-' + Date.now()
-        };
-        
-        console.log('[Facebook Pixel] Dados do evento:', JSON.stringify(eventData, null, 2));
-        
-        // Track the event
-        window.fbq('track', 'InitiateCheckout', eventData);
-        console.log('[Facebook Pixel] InitiateCheckout disparado com sucesso');
-        
-        // Also fire a standard PageView
-        window.fbq('track', 'PageView');
-      } catch (error) {
-        console.error('[Facebook Pixel] Erro ao disparar InitiateCheckout:', error);
+          content_type: 'product'
+        }]);
       }
-    };
-    
-    // Add event listener for when the pixel is loaded
-    const handlePixelLoaded = () => {
-      console.log('[Facebook Pixel] Evento de carregamento detectado');
-      fireInitiateCheckout();
-    };
-    
-    // Listen for the pixel loaded event
-    document.addEventListener('fbevents.loaded', handlePixelLoaded);
-    
-    // Try to fire immediately in case pixel is already loaded
-    fireInitiateCheckout();
-    
-    // Clean up
-    return () => {
-      document.removeEventListener('fbevents.loaded', handlePixelLoaded);
-    };
+    }
   }, []);
 
-  // Handle PIX code copy
   const copyPixCode = () => {
-    if (!pixData?.pixCode) return;
-    
-    navigator.clipboard.writeText(pixData.pixCode)
-      .then(() => {
-        alert('Código PIX copiado para a área de transferência!');
-      })
-      .catch(err => {
-        console.error('Erro ao copiar código PIX:', err);
-        alert('Não foi possível copiar o código PIX. Por favor, copie manualmente.');
-      });
+    const pixCode = pixData?.point_of_interaction?.transaction_data?.qr_code;
+    if (pixCode) {
+      navigator.clipboard.writeText(pixCode)
+        .then(() => {
+          alert("Código PIX copiado para a área de transferência!");
+        })
+        .catch(err => {
+          console.error("Erro ao copiar o código PIX:", err);
+          alert("Não foi possível copiar o código. Por favor, copie manualmente.");
+        });
+    } else {
+      console.error("Código PIX não disponível para cópia");
+      alert("Código PIX não disponível. Por favor, tente novamente.");
+    }
   };
 
   // Check payment status
-  const checkPaymentStatus = async () => {
-    if (!pixData?.id) return;
-    
-    setCheckingPayment(true);
-    
-    try {
-      const response = await fetch(`/api/check-payment?id=${pixData.id}`);
-      const data = await response.json();
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    const checkPaymentStatus = async () => {
+      if (!pixData?.id) return;
       
-      if (data.status === 'approved') {
-        setPaymentStatus('approved');
+      try {
+        console.log("[v0] Verificando status do pagamento:", pixData.id, "Status atual:", paymentStatus);
+        setCheckingPayment(true);
+
+        const response = await fetch(`/api/check-payment/${pixData.id}?t=${Date.now()}`); // Adiciona timestamp para evitar cache
         
-        // Fire Facebook Pixel Purchase event
-        try {
+        if (!response.ok) {
+          console.error("[v0] Erro na resposta da API:", response.status);
+          return;
+        }
+        
+        const data = await response.json();
+        console.log("[v0] Resposta da verificação de pagamento:", data);
+
+        if (data.status === "approved") {
+          console.log("[v0] Pagamento aprovado!");
+          setPaymentStatus("approved");
+          clearInterval(interval);
+          
+          // Facebook Pixel - Purchase Event
           if (typeof window !== 'undefined' && window.fbq) {
-            const purchaseData = {
+            window.fbq('track', 'Purchase', {
               value: 15.00,
               currency: 'BRL',
               content_type: 'product',
               content_ids: ['kit_basico'],
               content_name: 'Kit Básico de Estudos Bíblicos',
               content_category: 'Religioso',
-              transaction_id: pixData.id,
-              eventID: 'purchase-' + Date.now()
-            };
-            
-            window.fbq('track', 'Purchase', purchaseData);
-            console.log('[Facebook Pixel] Purchase event fired:', purchaseData);
+              order_id: pixData.id,
+              num_items: 1
+            });
+            console.log('[Facebook Pixel] Purchase event fired for order:', pixData.id);
           }
-        } catch (error) {
-          console.error('[Facebook Pixel] Error firing Purchase event:', error);
+          
+          // Redireciona para a página de pagamento aprovado
+          setTimeout(() => {
+            router.push("/pagamento-aprovado");
+          }, 2000);
+        } else if (data.status === "rejected") {
+          console.log("[v0] Pagamento rejeitado");
+          setError("Pagamento rejeitado. Por favor, tente novamente.");
+          setPaymentStatus("pending");
+          clearInterval(interval);
         }
         
-        // Clear the interval
-        if (paymentCheckInterval.current) {
-          clearInterval(paymentCheckInterval.current);
-          paymentCheckInterval.current = null;
-        }
-        
-        // Redirect to thank you page after a short delay
-        setTimeout(() => {
-          router.push('/pagamento-aprovado');
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Erro ao verificar status do pagamento:', error);
-      setError('Erro ao verificar status do pagamento. Por favor, tente novamente.');
-    } finally {
-      setCheckingPayment(false);
-    }
-  };
-
-  // Set up payment status checking
-  useEffect(() => {
-    if (pixData?.id && paymentStatus === 'pending') {
-      // Check immediately and then every 5 seconds
-      checkPaymentStatus();
-      paymentCheckInterval.current = setInterval(checkPaymentStatus, 5000);
-    }
-    
-    return () => {
-      if (paymentCheckInterval.current) {
-        clearInterval(paymentCheckInterval.current);
-        paymentCheckInterval.current = null;
+      } catch (error) {
+        console.error("[v0] Erro ao verificar pagamento:", error);
+        setError("Erro ao verificar status do pagamento. Atualize a página e tente novamente.");
+      } finally {
+        setCheckingPayment(false);
       }
     };
-  }, [pixData, paymentStatus]);
 
-  // Handle PIX payment form submission
+    if (pixData?.id && paymentStatus === "pending") {
+      // Verifica imediatamente e depois a cada 5 segundos
+      checkPaymentStatus();
+      interval = setInterval(checkPaymentStatus, 5000);
+      
+      // Limpa o intervalo quando o componente for desmontado
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    }
+  }, [pixData?.id, paymentStatus, router]);
+
   const handlePixPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email) {
-      setError('Por favor, insira um e-mail válido.');
-      return;
-    }
+    if (!email) return;
     
     setIsLoading(true);
     setError('');
-    
+
     try {
-      const response = await fetch('/api/generate-pix', {
-        method: 'POST',
+      console.log("[v0] Iniciando geração do PIX...");
+      console.log("[v0] Email:", email);
+
+      const response = await fetch("/api/generate-pix", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
       });
-      
-      if (!response.ok) {
-        throw new Error('Erro ao gerar código PIX');
-      }
-      
+
+      console.log("[v0] Response status:", response.status);
+
       const data = await response.json();
+      console.log("[v0] Response data:", data);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao processar pagamento");
+      }
+
       setPixData(data);
-      setPaymentStatus('pending');
-      
-    } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
-      setError('Não foi possível processar o pagamento. Por favor, tente novamente.');
+      setPaymentStatus("pending");
+      console.log("[v0] PIX gerado com sucesso!");
+    } catch (err) {
+      console.log("[v0] Erro capturado:", err);
+      setError(`Erro ao gerar PIX: ${err instanceof Error ? err.message : "Tente novamente."}`);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
-        <div className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Pagamento via PIX</h1>
-            <p className="mt-2 text-gray-600">Complete seu pedido em poucos segundos</p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto text-center">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-purple-900 mb-6">Obrigada por testar nosso conteúdo!</h1>
           
-          {!pixData ? (
-            <form onSubmit={handlePixPayment} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Seu melhor e-mail
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="seu@email.com"
-                  required
-                />
-              </div>
-              
-              {error && (
-                <div className="text-red-600 text-sm">
-                  {error}
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8 text-left">
+            {!pixData ? (
+              <>
+                <div className="text-center mb-8">
+                  <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-pink-100 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-700 mb-6 text-lg">
+                    Você testou por 60 segundos e viu que o conteúdo é sério.
+                  </p>
+                  <p className="text-gray-700 mb-6">
+                    Vou confiar na sua honestidade como irmã em Cristo. Vou liberar primeiro todo o material para você baixar, confiando que você é íntegra e vai cumprir sua palavra, como Jesus nos ensinou.
+                  </p>
                 </div>
-              )}
-              
-              <div>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-semibold text-purple-800 mb-4">
+                    👇 BAIXE AGORA os 90 Estudos Bíblicos + Link do Site Completo
+                  </h2>
+                  <div className="flex flex-col space-y-4 max-w-xs mx-auto">
+                    <a 
+                      href="https://drive.google.com/drive/folders/1_UFdNBFTTb8WNucLI7wqkw_efr-EYIN_" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg transform transition-all duration-300 hover:scale-105 inline-block text-center"
+                    >
+                      Baixar PDFs
+                    </a>
+                    <a 
+                      href="https://estudo-biblico-mulheres.lovable.app/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg transform transition-all duration-300 hover:scale-105 inline-block text-center"
+                    >
+                      Acessar Site Completo
+                    </a>
+                  </div>
+                </div>
+
+                <div className="text-center bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-100 mb-6 max-w-2xl mx-auto">
+                  <p className="text-gray-800 font-medium text-lg mb-2">
+                    ✨ <span className="text-purple-600 font-semibold">Último Passo!</span> ✨
+                  </p>
+                  <p className="text-gray-700 mb-0">
+                    📧 Insira seu e-mail abaixo e clique em <span className="font-bold text-purple-700">"Gerar PIX - R$ 15,00"</span>
+                  </p>
+                  <p className="text-sm text-purple-600 mt-2 flex items-center justify-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Seus dados estão seguros conosco
+                  </p>
+                  
+                  <form onSubmit={handlePixPayment} className="max-w-md mx-auto">
+                    {error && <div className="text-red-600 text-sm mb-4 bg-red-50 p-2 rounded">{error}</div>}
+                    
+                    <div className="mb-4">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Seu melhor e-mail"
+                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg text-lg shadow-lg transition-all duration-300 flex items-center justify-center"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                          Gerando PIX...
+                        </>
+                      ) : (
+                        'Gerar PIX - R$ 15,00'
+                      )}
+                    </button>
+                  </form>
+                  
+                  <a 
+                    href="https://wa.me/556181662814?text=Olá,%20preciso%20de%20ajuda%20com%20o%20pagamento%20PIX%20do%20Kit%20Básico" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full max-w-md mx-auto mt-4 text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-200 hover:border-gray-300 rounded-md py-2 px-4 bg-white shadow-sm"
+                  >
+                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    Precisa de ajuda? Fale pelo WhatsApp
+                  </a>
+                  
+                  <p className="text-sm text-gray-500 mt-4">
+                    É assim que funciona: confiança gera confiança.
+                  </p>
+                </div>
+              </>
+            ) : paymentStatus === "approved" ? (
+              <div className="text-center py-8">
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold text-green-600 mb-2">Pagamento Aprovado!</h3>
+                <p className="text-gray-700 mb-6">Seu acesso foi liberado com sucesso!</p>
+                <button 
+                  onClick={() => router.push('/pagamento-aprovado')}
+                  className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                      Processando...
-                    </>
-                  ) : (
-                    'Gerar Código PIX'
-                  )}
+                  Acessar Conteúdo
                 </button>
               </div>
-            </form>
-          ) : (
-            <div className="space-y-6">
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <MessageCircle className="h-5 w-5 text-blue-400" />
+            ) : (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle className="w-12 h-12 text-green-500" />
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-blue-700">
-                      Enviamos o QR Code e o código PIX para <span className="font-medium">{email}</span>.
-                      Verifique sua caixa de entrada e spam.
-                    </p>
+                  <h3 className="text-xl font-bold text-purple-800 mb-2">PIX Gerado com Sucesso!</h3>
+                  <p className="text-gray-600 mb-6">Escaneie o QR Code ou copie o código PIX abaixo</p>
+                  
+                  {checkingPayment && (
+                    <div className="flex items-center justify-center gap-2 text-blue-600 bg-blue-50 p-2 rounded-lg mb-4">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Verificando pagamento...
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-gray-50 p-6 rounded-xl">
+                  {pixData.point_of_interaction?.transaction_data?.qr_code_base64 ? (
+                    <div className="bg-white p-4 rounded-lg border border-gray-200 mb-6">
+                      <p className="text-sm text-gray-500 mb-3">Escaneie este QR Code no seu app do banco:</p>
+                      <div className="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center p-2 border border-gray-200">
+                        <img
+                          src={`data:image/png;base64,${pixData.point_of_interaction.transaction_data.qr_code_base64}`}
+                          alt="QR Code PIX"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                      <p className="text-yellow-700">QR Code não disponível. Por favor, copie o código PIX abaixo.</p>
+                    </div>
+                  )}
+
+                  <div className="mb-6">
+                    <p className="text-sm text-gray-600 mb-2">Ou copie o código PIX:</p>
+                    <div className="relative">
+                      <div className="bg-white p-3 rounded-lg border border-gray-300 overflow-x-auto">
+                        <p className="text-sm font-mono break-all">
+                          {pixData.point_of_interaction?.transaction_data?.qr_code || "Código PIX não disponível"}
+                        </p>
+                        <button
+                          onClick={copyPixCode}
+                          className="mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-700 font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                          </svg>
+                          Copiar Código PIX
+                        </button>
+                      </div>
+                      <button
+                        onClick={copyPixCode}
+                        className="absolute top-2 right-2 p-1 text-gray-500 hover:text-purple-600"
+                        title="Copiar código PIX"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h4 className="font-semibold text-blue-800 mb-2 flex items-center justify-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h2a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      Como pagar com PIX
+                    </h4>
+                    <ol className="text-sm text-gray-700 space-y-2 text-left pl-5 list-decimal">
+                      <li>Abra o app do seu banco</li>
+                      <li>Vá em PIX Copia e Cola</li>
+                      <li>Cole o código e confirme o pagamento</li>
+                      <li>Seu acesso será liberado automaticamente</li>
+                    </ol>
                   </div>
                 </div>
-              </div>
-              
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Código PIX Copia e Cola</h3>
-                  <button
-                    onClick={copyPixCode}
-                    className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+
+                <div className="text-center">
+                  <a 
+                    href="https://wa.me/556181662814?text=Olá,%20preciso%20de%20ajuda%20com%20o%20pagamento%20PIX%20do%20Kit%20Básico" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full max-w-md mx-auto mb-4 text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-200 hover:border-gray-300 rounded-md py-2 px-4 bg-white shadow-sm"
                   >
-                    <Copy className="h-4 w-4 mr-1" />
-                    Copiar
-                  </button>
-                </div>
-                
-                <div className="bg-gray-50 p-3 rounded-md overflow-x-auto">
-                  <code className="text-sm text-gray-800 break-all">
-                    {pixData.pixCode}
-                  </code>
-                </div>
-                
-                <div className="mt-4 flex items-center text-sm text-gray-500">
-                  <Clock className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                  <p>Este código PIX expira em 30 minutos</p>
+                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    Precisa de ajuda? Fale pelo WhatsApp
+                  </a>
+                  <p className="text-xs text-gray-400">
+                    Pagamento processado com segurança por Mercado Pago
+                  </p>
                 </div>
               </div>
-              
-              {checkingPayment && (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="animate-spin h-5 w-5 text-blue-500 mr-2" />
-                  <span className="text-sm text-gray-600">Verificando pagamento...</span>
-                </div>
-              )}
-              
-              {paymentStatus === 'approved' && (
-                <div className="rounded-md bg-green-50 p-4">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <CheckCircle className="h-5 w-5 text-green-400" />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-green-800">
-                        Pagamento aprovado! Redirecionando...
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+            )}
+          </div>
+          
+          {!pixData && (
+            <div className="mt-8 text-sm text-gray-500">
+              <p>Se tiver qualquer dúvida, entre em contato pelo nosso WhatsApp de suporte.</p>
             </div>
           )}
-          
-          <div className="mt-6 text-center text-sm text-gray-500">
-            <p>Dúvidas? Entre em contato pelo suporte@seusite.com</p>
-          </div>
         </div>
       </div>
     </div>
