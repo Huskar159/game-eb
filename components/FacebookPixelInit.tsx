@@ -103,10 +103,32 @@ export default function FacebookPixelInit() {
       
       {/* Script principal do Facebook Pixel */}
       <Script
-        id="fb-pixel-main"
+        id="fb-pixel-script"
         strategy="afterInteractive"
+        onLoad={() => {
+          console.log('[Facebook Pixel] Script carregado com sucesso');
+          if (window.fbq) {
+            console.log('[Facebook Pixel] fbq disponível após carregamento do script');
+            window.fbq.loaded = true;
+            
+            // Força a inicialização se ainda não estiver inicializado
+            try {
+              window.fbq('init', '${FB_PIXEL_ID}');
+              console.log('[Facebook Pixel] fbq(init) chamado no onLoad');
+              window.fbq('track', 'PageView');
+              console.log('[Facebook Pixel] PageView disparado no onLoad');
+            } catch (e) {
+              console.error('[Facebook Pixel] Erro no onLoad:', e);
+            }
+          }
+        }}
+        onError={(e) => {
+          console.error('[Facebook Pixel] Erro ao carregar o script:', e);
+        }}
         dangerouslySetInnerHTML={{
           __html: `
+            console.log('[Facebook Pixel] Iniciando carregamento do script...');
+            
             // Verifica se o fbq já foi carregado
             if (typeof fbq !== 'undefined' && fbq.loaded) {
               console.log('[Facebook Pixel] fbq já está carregado');
@@ -115,7 +137,12 @@ export default function FacebookPixelInit() {
             
             // Inicializa o objeto fbq
             !function(f,b,e,v,n,t,s) {
-              if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              if(f.fbq) {
+                console.log('[Facebook Pixel] fbq já existe, retornando...');
+                return;
+              }
+              
+              n=f.fbq=function(){n.callMethod?
               n.callMethod.apply(n,arguments):n.queue.push(arguments)};
               if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
               n.queue=[];t=b.createElement(e);t.async=!0;
@@ -124,28 +151,35 @@ export default function FacebookPixelInit() {
               
               console.log('[Facebook Pixel] Script injetado, inicializando...');
               
+              // Configura o objeto global
+              window.fbq = n;
+              
               // Inicializa o Pixel
               try {
-                fbq('init', '${FB_PIXEL_ID}');
+                n('init', '${FB_PIXEL_ID}');
                 console.log('[Facebook Pixel] fbq(init) chamado no script principal');
                 
                 // Dispara o PageView
-                fbq('track', 'PageView');
+                n('track', 'PageView');
                 console.log('[Facebook Pixel] PageView disparado no script principal');
                 
                 // Marca como carregado
-                if (window.fbq) {
-                  window.fbq.loaded = true;
-                  console.log('[Facebook Pixel] fbq.loaded definido como true no script principal');
-                }
+                n.loaded = true;
+                console.log('[Facebook Pixel] fbq.loaded definido como true no script principal');
+                
+                // Dispara um evento personalizado para notificar que o Pixel está pronto
+                document.dispatchEvent(new Event('fbevents.loaded'));
+                
               } catch (e) {
                 console.error('[Facebook Pixel] Erro no script principal:', e);
               }
-            }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+            }(window, document, 'script', 'https://connect.facebook.net/pt_BR/fbevents.js');
             
             // Verificação adicional
             if (typeof fbq !== 'undefined') {
               console.log('[Facebook Pixel] fbq disponível após carregamento');
+            } else {
+              console.warn('[Facebook Pixel] fbq NÃO está disponível após carregamento!');
             }
           `
         }}
