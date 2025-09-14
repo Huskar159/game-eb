@@ -174,7 +174,7 @@ export default function PosTestePage() {
 
                 <div className="text-center">
                   <p className="text-gray-700 mb-6 text-center">
-                    Para gerar o PIX e ter acesso completo, insira seu e-mail abaixo e clique em "Gerar PIX - R$ 15,00"
+                    Para gerar o PIX, insira seu e-mail abaixo e clique em "Gerar PIX - R$ 15,00"
                   </p>
                   
                   <form onSubmit={handlePixPayment} className="max-w-md mx-auto">
