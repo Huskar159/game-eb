@@ -15,13 +15,16 @@ export default function BibleStudyDemo() {
   const router = useRouter()
 
   useEffect(() => {
-    // Verifica se há o parâmetro skipDemo na URL
+    // Redireciona direto para /pos-teste
+    router.push('/pos-teste')
+    
+    // Mantém a lógica original para caso precise voltar atrás
     const searchParams = new URLSearchParams(window.location.search)
     if (searchParams.get('skipDemo') === 'true') {
       setSkipDemo(true)
       setIsBlocked(true)
     }
-  }, [])
+  }, [router])
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
