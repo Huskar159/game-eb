@@ -15,14 +15,13 @@ export default function BibleStudyDemo() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redireciona direto para /pos-teste
-    router.push('/pos-teste')
-    
-    // Mantém a lógica original para caso precise voltar atrás
+    // Verifica o parâmetro skipDemo na URL
     const searchParams = new URLSearchParams(window.location.search)
     if (searchParams.get('skipDemo') === 'true') {
       setSkipDemo(true)
       setIsBlocked(true)
+      // Redireciona para /pos-teste apenas se skipDemo for true
+      router.push('/pos-teste')
     }
   }, [router])
 
