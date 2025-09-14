@@ -240,6 +240,9 @@ export default function CheckoutPage() {
             
             // Marca como rastreado para evitar duplicação
             sessionStorage.setItem(purchaseKey, 'true');
+            
+            // Redireciona para a página de pagamento aprovado
+            router.push('/pagamento-aprovado');
           }
           
           setPaymentStatus("approved");
