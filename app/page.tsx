@@ -32,6 +32,7 @@ export default function BibleStudyDemo() {
           if (timeLeft <= 1) {
             setIsBlocked(true)
             setIsActive(false)
+            router.push('/pos-teste')
             return 0
           }
           return timeLeft - 1
