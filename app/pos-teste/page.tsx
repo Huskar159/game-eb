@@ -97,6 +97,22 @@ export default function PosTestePage() {
           console.log("[v0] Pagamento aprovado!");
           setPaymentStatus("approved");
           clearInterval(interval);
+          
+          // Facebook Pixel - Purchase Event
+          if (typeof window !== 'undefined' && window.fbq) {
+            window.fbq('track', 'Purchase', {
+              value: 15.00,
+              currency: 'BRL',
+              content_type: 'product',
+              content_ids: ['kit_basico'],
+              content_name: 'Kit Básico de Estudos Bíblicos',
+              content_category: 'Religioso',
+              order_id: pixData.id,
+              num_items: 1
+            });
+            console.log('[Facebook Pixel] Purchase event fired for order:', pixData.id);
+          }
+          
           // Redireciona para a página de pagamento aprovado
           setTimeout(() => {
             router.push("/pagamento-aprovado");
