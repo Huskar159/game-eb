@@ -21,7 +21,13 @@ export default function PosTestePage() {
 
   // Facebook Pixel - Initiate Checkout
   useEffect(() => {
+    const FB_PIXEL_ID = '2292146237905291';
+    
     if (typeof window !== 'undefined' && window.fbq) {
+      // Standard pixel tracking
+      window.fbq('track', 'PageView');
+      
+      // Initiate Checkout Event
       window.fbq('track', 'InitiateCheckout', {
         content_category: 'Religioso',
         content_ids: ['kit_basico'],
@@ -29,10 +35,23 @@ export default function PosTestePage() {
         currency: 'BRL',
         value: 15.00,
         content_type: 'product',
-      });
-      console.log('[Facebook Pixel] InitiateCheckout event fired');
+      }, {eventID: 'pos-teste-initiate-checkout-' + Date.now()});
+      
+      console.log('[Facebook Pixel] InitiateCheckout event fired with Pixel ID:', FB_PIXEL_ID);
     } else {
       console.log('[Facebook Pixel] fbq not available yet');
+      // Fallback in case fbq isn't loaded yet
+      if (typeof window !== 'undefined') {
+        window._fbq = window._fbq || [];
+        window._fbq.push(['track', 'InitiateCheckout', {
+          content_category: 'Religioso',
+          content_ids: ['kit_basico'],
+          content_name: 'Kit Básico de Estudos Bíblicos',
+          currency: 'BRL',
+          value: 15.00,
+          content_type: 'product'
+        }]);
+      }
     }
   }, []);
 
