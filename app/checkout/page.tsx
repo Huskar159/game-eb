@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, Mail, CreditCard, CheckCircle, Loader2, Clock, Download, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useFacebookPixel } from "@/hooks/useFacebookPixel"
-import { trackInitiateCheckout } from "@/lib/facebook-pixel"
+import { trackInitiateCheckout, trackPurchase } from "@/lib/facebook-pixel"
 
 export default function CheckoutPage() {
   const [email, setEmail] = useState("")
@@ -210,8 +210,40 @@ export default function CheckoutPage() {
 
         if (data.status === "approved") {
           console.log("[v0] Pagamento aprovado!")
-          setPaymentStatus("approved")
-          clearInterval(interval)
+          
+          // Dispara o evento de compra aprovada
+          const orderId = 'order_' + Date.now() + '_' + Math.floor(Math.random() * 1000) + '_kit_essencial';
+          
+          // Armazena no sessionStorage para evitar duplicação
+          const purchaseKey = `purchase_tracked_${orderId}`;
+          if (!sessionStorage.getItem(purchaseKey)) {
+            console.log('[v0] Disparando evento Purchase para o Facebook Pixel');
+            
+            // Usa a função trackPurchase aprimorada
+            trackPurchase(
+              15.00, // preço
+              'BRL', // moeda
+              'kit_essencial', // ID do produto
+              'Kit Essencial', // Nome do produto
+              orderId, // ID do pedido
+              {
+                content_type: 'product',
+                content_category: 'Estudos Bíblicos',
+                num_items: 1,
+                source: 'checkout_page',
+                page_type: 'thank_you_page',
+                product_catalog_id: 'estudos_biblicos',
+                product_price: 15.00,
+                product_quantity: 1
+              }
+            );
+            
+            // Marca como rastreado para evitar duplicação
+            sessionStorage.setItem(purchaseKey, 'true');
+          }
+          
+          setPaymentStatus("approved");
+          clearInterval(interval);
         } else if (data.status === "rejected") {
           console.log("[v0] Pagamento rejeitado")
           setError("Pagamento rejeitado. Por favor, tente novamente.")

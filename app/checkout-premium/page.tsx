@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Mail, CreditCard, CheckCircle, Loader2, Clock, Download, MessageCircle, ShieldCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { trackInitiateCheckout } from "@/lib/facebook-pixel"
+import { trackInitiateCheckout, trackPurchase } from "@/lib/facebook-pixel"
 
 export default function CheckoutPremiumPage() {
   const [email, setEmail] = useState("")
@@ -85,8 +85,40 @@ export default function CheckoutPremiumPage() {
 
   // Track Initiate Checkout when component mounts
   useEffect(() => {
-    trackInitiateCheckout(24.90, 'BRL', 'kit_lider_transformada', 'Kit Líder Transformada')
-  }, [])
+    console.log('[Checkout Premium] Iniciando rastreamento do checkout premium');
+    
+    // Adiciona um pequeno atraso para garantir que o Facebook Pixel esteja carregado
+    const timer = setTimeout(() => {
+      console.log('[Checkout Premium] Chamando trackInitiateCheckout...');
+      
+      trackInitiateCheckout(
+        24.90, // Valor do produto
+        'BRL', // Moeda
+        'kit_lider_transformada', // ID do produto
+        'Kit Líder Transformada', // Nome do produto
+        {
+          // Parâmetros adicionais para melhor rastreamento
+          source: 'checkout_premium_page',
+          page_type: 'checkout',
+          user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
+          content_category: 'Estudos Bíblicos',
+          content_type: 'product',
+          num_items: 1
+        }
+      );
+      
+      // Verifica se o fbq foi carregado corretamente
+      if (typeof window !== 'undefined') {
+        console.log('[Checkout Premium] Verificando fbq:', {
+          fbq: typeof window.fbq,
+          fbqLoaded: window.fbq?.loaded,
+          fbqQueue: window.fbq?.queue
+        });
+      }
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -110,6 +142,38 @@ export default function CheckoutPremiumPage() {
 
         if (data.status === "approved") {
           console.log("[v0] Pagamento aprovado!")
+          
+          // Dispara o evento de compra aprovada
+          const orderId = 'order_' + Date.now() + '_' + Math.floor(Math.random() * 1000) + '_kit_lider_transformada';
+          
+          // Armazena no sessionStorage para evitar duplicação
+          const purchaseKey = `purchase_tracked_${orderId}`;
+          if (!sessionStorage.getItem(purchaseKey)) {
+            console.log('[v0] Disparando evento Purchase para o Facebook Pixel');
+            
+            // Usa a função trackPurchase aprimorada
+            trackPurchase(
+              24.90, // preço
+              'BRL', // moeda
+              'kit_lider_transformada', // ID do produto
+              'Kit Líder Transformada', // Nome do produto
+              orderId, // ID do pedido
+              {
+                content_type: 'product',
+                content_category: 'Estudos Bíblicos',
+                num_items: 1,
+                source: 'checkout_premium_page',
+                page_type: 'thank_you_page',
+                product_catalog_id: 'estudos_biblicos',
+                product_price: 24.90,
+                product_quantity: 1
+              }
+            );
+            
+            // Marca como rastreado para evitar duplicação
+            sessionStorage.setItem(purchaseKey, 'true');
+          }
+          
           setPaymentStatus("approved")
           clearInterval(interval)
         } else if (data.status === "rejected") {

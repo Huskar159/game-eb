@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Loader2, Clock, MessageCircle } from 'lucide-react';
+import { trackInitiateCheckout } from '@/lib/facebook-pixel';
 
 declare global {
   interface Window {
@@ -21,38 +22,23 @@ export default function PosTestePage() {
 
   // Facebook Pixel - Initiate Checkout
   useEffect(() => {
-    const FB_PIXEL_ID = '2292146237905291';
+    // Verifica se está rodando no navegador
+    if (typeof window === 'undefined') return;
     
-    if (typeof window !== 'undefined' && window.fbq) {
-      // Standard pixel tracking
-      window.fbq('track', 'PageView');
-      
-      // Initiate Checkout Event
-      window.fbq('track', 'InitiateCheckout', {
+    // Dispara o evento InitiateCheckout
+    trackInitiateCheckout(
+      15.00, // valor
+      'BRL', // moeda
+      'kit_basico', // ID do produto
+      'Kit Básico de Estudos Bíblicos', // Nome do produto
+      {
         content_category: 'Religioso',
-        content_ids: ['kit_basico'],
-        content_name: 'Kit Básico de Estudos Bíblicos',
-        currency: 'BRL',
-        value: 15.00,
-        content_type: 'product',
-      }, {eventID: 'pos-teste-initiate-checkout-' + Date.now()});
-      
-      console.log('[Facebook Pixel] InitiateCheckout event fired with Pixel ID:', FB_PIXEL_ID);
-    } else {
-      console.log('[Facebook Pixel] fbq not available yet');
-      // Fallback in case fbq isn't loaded yet
-      if (typeof window !== 'undefined') {
-        window._fbq = window._fbq || [];
-        window._fbq.push(['track', 'InitiateCheckout', {
-          content_category: 'Religioso',
-          content_ids: ['kit_basico'],
-          content_name: 'Kit Básico de Estudos Bíblicos',
-          currency: 'BRL',
-          value: 15.00,
-          content_type: 'product'
-        }]);
+        page_type: 'checkout',
+        source: 'pos-teste',
+        eventSourceUrl: window.location.href,
+        num_items: 1
       }
-    }
+    );
   }, []);
 
   const copyPixCode = () => {

@@ -184,54 +184,115 @@ export const trackInitiateCheckout = (
 export const trackPurchase = (
   value: number,
   currency: string = 'BRL',
-  contentId: string = 'kit_lider_transformada',
-  contentName: string = 'Kit Líder Transformada'
+  contentId: string = 'kit_basico',
+  contentName: string = 'Kit Básico de Estudos Bíblicos',
+  orderId?: string,
+  additionalParams: Record<string, any> = {}
 ): void => {
-  if (typeof window === 'undefined') return;
+  console.log('[Meta Ads] trackPurchase chamado com:', { 
+    value, 
+    currency, 
+    contentId, 
+    contentName,
+    orderId,
+    additionalParams 
+  });
   
-  // Cria uma chave única para cada compra para rastrear apenas uma vez
-  const trackingKey = `fb_purchase_${contentId}`;
-  const alreadyTracked = sessionStorage.getItem(trackingKey);
-  
-  if (alreadyTracked) {
-    console.log(`[Facebook Pixel] Compra já rastreada para ${contentName}`);
+  if (typeof window === 'undefined') {
+    console.log('[Meta Ads] window is undefined');
     return;
   }
   
+  // Cria uma chave única para cada compra para rastrear apenas uma vez
+  const trackingKey = `fb_purchase_${orderId || contentId}`;
+  const alreadyTracked = sessionStorage.getItem(trackingKey);
+  
+  if (alreadyTracked) {
+    console.log(`[Meta Ads] Compra já rastreada para ${contentName} (${orderId || contentId})`);
+    return;
+  }
+  
+  // Função para verificar se o fbq está disponível
+  const isFbqLoaded = () => {
+    return typeof window !== 'undefined' && window.fbq && typeof window.fbq === 'function';
+  };
+  
   // Função para tentar rastrear a compra
-  const track = () => {
+  const trackEvent = (attempt = 1, maxAttempts = 5) => {
+    if (attempt > maxAttempts) {
+      console.error(`[Meta Ads] Número máximo de tentativas (${maxAttempts}) atingido sem sucesso`);
+      return;
+    }
+
+    if (!isFbqLoaded()) {
+      console.log(`[Meta Ads] fbq não disponível, tentando novamente em ${attempt * 500}ms... (${attempt}/${maxAttempts})`);
+      setTimeout(() => trackEvent(attempt + 1, maxAttempts), attempt * 500);
+      return;
+    }
+    
     try {
-      // Verifica se o fbq está disponível
-      if (typeof window.fbq === 'function') {
-        window.fbq('track', 'Purchase', {
-          value: value,
-          currency: currency,
-          content_ids: [contentId],
-          content_name: contentName,
-          content_type: 'product',
-          content_category: 'Estudos Bíblicos',
-        });
+      // Prepara os parâmetros do evento
+      const eventParams = {
+        value: value,
+        currency: currency,
+        content_type: 'product',
+        content_ids: [contentId],
+        content_name: contentName,
+        content_category: 'Estudos Bíblicos',
+        eventID: `purchase_${orderId || Date.now()}`,
+        eventSourceUrl: window.location.href,
+        order_id: orderId,
+        num_items: 1,
+        ...additionalParams
+      };
+      
+      console.log('[Meta Ads] Disparando evento Purchase com parâmetros:', eventParams);
+      
+      // Tenta disparar o evento de várias formas
+      try {
+        // Método 1: Usando fbq padrão
+        console.log('[Meta Ads] Tentando fbq(track) para Purchase...');
+        window.fbq('track', 'Purchase', eventParams);
+        console.log('[Meta Ads] fbq(track) Purchase chamado com sucesso');
         
-        // Marca esta compra como rastreada
+        // Método 2: Usando trackSingle
+        console.log('[Meta Ads] Tentando fbq(trackSingle) para Purchase...');
+        window.fbq('trackSingle', '2292146237905291', 'Purchase', eventParams);
+        console.log('[Meta Ads] fbq(trackSingle) Purchase chamado com sucesso');
+        
+        // Marca como rastreado
         sessionStorage.setItem(trackingKey, 'true');
-        console.log(`[Facebook Pixel] Compra rastreada: ${contentName} - R$ ${value}`);
-        return true;
+        console.log(`[Meta Ads] Compra rastreada: ${contentName} - R$ ${value} (${orderId || 'sem ID'})`);
+        
+        // Log da fila de eventos
+        if (window.fbq.queue) {
+          console.log('[Meta Ads] Fila de eventos fbq:', window.fbq.queue);
+        }
+        
+        return; // Sucesso, encerra a função
+        
+      } catch (e) {
+        console.error('[Meta Ads] Erro ao disparar o evento Purchase:', e);
       }
-      return false;
+      
+      // Se chegou aqui, houve falha nas tentativas
+      if (attempt < maxAttempts) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Backoff exponencial
+        console.log(`[Meta Ads] Tentando novamente em ${delay}ms... (${attempt + 1}/${maxAttempts})`);
+        setTimeout(() => trackEvent(attempt + 1, maxAttempts), delay);
+      } else {
+        console.error('[Meta Ads] Número máximo de tentativas atingido sem sucesso');
+      }
+      
     } catch (error) {
-      console.error('[Facebook Pixel] Erro ao rastrear compra:', error);
-      return false;
+      console.error('[Meta Ads] Erro inesperado ao rastrear Purchase:', error);
+      if (attempt < maxAttempts) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        setTimeout(() => trackEvent(attempt + 1, maxAttempts), delay);
+      }
     }
   };
   
-  // Tenta rastrear imediatamente
-  const tracked = track();
-  
-  // Se não conseguiu rastrear, tenta novamente após 1 segundo
-  if (!tracked) {
-    console.log('[Facebook Pixel] Tentando novamente em 1 segundo...');
-    setTimeout(() => {
-      track();
-    }, 1000);
-  }
+  // Inicia o processo de rastreamento
+  trackEvent();
 };
