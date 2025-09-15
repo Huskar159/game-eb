@@ -47,10 +47,16 @@ export default function BibleStudyDemo() {
     }
   }, [isActive, timeLeft])
 
-  const startDemo = () => {
-    setIsActive(true)
-    setTimeLeft(60)
-    setIsBlocked(false)
+  const startDemo = (skipToEnd = false) => {
+    if (skipToEnd) {
+      setIsBlocked(true)
+      setIsActive(false)
+      router.push('/pos-teste')
+    } else {
+      setIsActive(true)
+      setTimeLeft(60)
+      setIsBlocked(false)
+    }
   }
 
   const formatTime = (seconds: number) => {
@@ -73,72 +79,86 @@ export default function BibleStudyDemo() {
             </div>
             <div className="flex items-center justify-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-accent" />
-              <span className="text-sm font-medium text-accent-foreground">Especialmente para você</span>
+              <span className="text-sm font-medium text-accent-foreground">🌸 Especialmente para você 🌸</span>
               <Sparkles className="w-5 h-5 text-accent" />
             </div>
             <CardTitle className="text-3xl md:text-4xl font-bold text-balance leading-tight">
-              Prepare sua célula feminina em apenas 10 minutos - sem stress, sem correria
+              Transforme sua célula feminina com estudos que tocam o coração - sem stress, sem correria
             </CardTitle>
             <CardDescription className="text-lg md:text-xl text-pretty text-muted-foreground">
-              Teste por 60 segundos nosso sistema com 90 estudos prontos e veja como vai revolucionar suas células
-              femininas
+              Receba agora 90 estudos exclusivos e veja como vai revolucionar suas ministrações femininas
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="bg-[#cf9bcc] p-6 rounded-xl border border-purple-300">
-              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2 text-gray-900">
-                <Star className="w-5 h-5 text-accent fill-accent" />
-                Seu estudo personalizado está pronto!
+            <div className="bg-[#f8e9f7] p-6 rounded-xl border-2 border-pink-200">
+              <h3 className="font-semibold text-xl mb-4 flex items-center gap-2 text-pink-800">
+                <Star className="w-6 h-6 text-pink-500 fill-pink-300" />
+                ⭐ Seus estudos personalizados estão prontos!
               </h3>
-              <p className="text-gray-900 mb-4">
-                Você vai poder testar por{" "}
-                <strong className="text-primary-foreground bg-primary px-2 py-1 rounded-md">60 segundos</strong> o site
-                completo que receberá após a compra e ver exatamente como ele funciona na prática:
+              <p className="text-gray-800 mb-4 text-lg">
+                Posso confiar na sua honestidade como irmã em Cristo?
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
-                  <span className="text-sm text-gray-900">90 estudos completos e prontos para usar</span>
+              <p className="text-gray-800 mb-6">
+                Vou entregar primeiro todo o material para você avaliar, confiando que você vai fazer o pagamento depois. Igual Jesus nos ensinou sobre integridade e cumprir nossa palavra.
+              </p>
+              <h4 className="font-semibold text-lg mb-3 text-pink-700">📖 90 Estudos Completos organizados por temas:</h4>
+              <div className="grid grid-cols-1 gap-3 mb-6">
+                <div className="bg-white/50 p-3 rounded-lg border border-pink-100">
+                  <div className="font-semibold text-pink-700">✅ IDENTIDADE FEMININA</div>
+                  <p className="text-sm text-gray-700">Autoestima bíblica, valor da mulher, propósito, dons e talentos</p>
+                </div>
+                <div className="bg-white/50 p-3 rounded-lg border border-pink-100">
+                  <div className="font-semibold text-pink-700">✅ RELACIONAMENTOS</div>
+                  <p className="text-sm text-gray-700">Casamento cristão, amizades, perdão, relacionamento mãe e filhos</p>
+                </div>
+                <div className="bg-white/50 p-3 rounded-lg border border-pink-100">
+                  <div className="font-semibold text-pink-700">✅ VIDA ESPIRITUAL</div>
+                  <p className="text-sm text-gray-700">Oração eficaz, intimidade com Deus, jejum, disciplinas espirituais</p>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <CheckCircle className="w-5 h-5 text-pink-500" />
+                  <span className="text-gray-800">Versões em PDF + Site interativo</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
-                  <span className="text-sm text-gray-900">Versões em PDF + site interativo</span>
+                  <CheckCircle className="w-5 h-5 text-pink-500" />
+                  <span className="text-gray-800">Acesso vitalício para consultar sempre</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
-                  <span className="text-sm text-gray-900">
-                    Organizado por tema: relacionamentos, família, propósito
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-accent" />
-                  <span className="text-sm text-gray-900">Economize 5+ horas de preparação por semana</span>
+                  <CheckCircle className="w-5 h-5 text-pink-500" />
+                  <span className="text-gray-800">Economize 5+ horas de preparação por semana</span>
                 </div>
               </div>
             </div>
 
-            <div className="text-center bg-accent/10 p-4 rounded-xl border border-accent/20">
-              <p className="text-sm font-medium text-accent-foreground flex items-center justify-center gap-2">
-                <Users className="w-4 h-4 text-accent" />
-                Mais de 500 líderes já estão usando - Nota média: 4.9/5 ⭐⭐⭐⭐⭐
+            <div className="text-center bg-pink-50 p-4 rounded-xl border-2 border-pink-100">
+              <p className="text-sm font-medium text-pink-700 flex items-center justify-center gap-2">
+                <Users className="w-5 h-5 text-pink-500" />
+                ⭐ Mais de 500 líderes já estão transformando suas células - Nota média: 4.9/5 ⭐⭐⭐⭐⭐
               </p>
             </div>
 
-            <div className="bg-accent/20 border-2 border-accent/30 p-4 rounded-xl">
-              <p className="text-sm text-accent-foreground">
-                <strong>Importante:</strong> Este teste é limitado a 60 segundos para você ter uma experiência real de
-                como nosso sistema vai facilitar sua vida como líder de célula feminina.
+            <div className="bg-pink-50 border-2 border-pink-100 p-6 rounded-xl text-center">
+              <p className="text-lg font-semibold text-pink-800 mb-4">
+                Se você se compromete a fazer o pagamento de R$ 15 após receber e avaliar todo o material, clique abaixo:
+              </p>
+              <div className="w-full max-w-xl mx-auto">
+                <Button
+                  onClick={startDemo}
+                  className="w-full text-base py-8 px-8 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold shadow-lg transform hover:scale-105 transition-all"
+                  size="lg"
+                >
+                  <div className="flex flex-col items-center justify-center w-full space-y-1">
+                    <div className="text-center">
+                      <span>🎁 RECEBER ESTUDOS AGORA</span>
+                    </div>
+                    <div className="text-center">Vou Confiar em Você! 📖</div>
+                  </div>
+                </Button>
+              </div>
+              <p className="text-sm text-pink-700 mt-3 italic">
+                É assim que funciona: confiança gera confiança.
               </p>
             </div>
-
-            <Button
-              onClick={startDemo}
-              className="w-full text-base sm:text-lg py-4 sm:py-6 bg-primary hover:bg-primary/90 shadow-lg px-4 sm:px-6 whitespace-normal text-center leading-tight"
-              size="lg"
-            >
-              <Clock className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="text-balance">Testar Agora - 60 Segundos Grátis 🚀</span>
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -362,9 +382,19 @@ export default function BibleStudyDemo() {
             <div className="w-3 h-3 bg-accent rounded-full pulse-animation"></div>
             <span className="font-semibold">✨ DEMO ATIVA</span>
           </div>
-          <div className="flex items-center gap-2 text-lg font-bold">
-            <Clock className="w-5 h-5" />
-            {formatTime(timeLeft)}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-lg font-bold">
+              <Clock className="w-5 h-5" />
+              {formatTime(timeLeft)}
+            </div>
+            <Button
+              onClick={() => startDemo(true)}
+              variant="outline"
+              size="sm"
+              className="bg-white/10 hover:bg-white/20 border-white/20 text-white cursor-pointer"
+            >
+              Ir para o material
+            </Button>
           </div>
         </div>
       </div>
